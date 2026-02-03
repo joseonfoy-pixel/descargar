@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+        <h1 class="text-3xl font-bold mb-2 text-red-500">YouTube <span class="text-white text-xl">Downloader</span></h1>
+        <p class="text-gray-400 mb-6 text-sm">Pega el link del video abajo para generar la descarga.</p>
+
+        <div class="space-y-4">
+            <input id="videoUrl" type="text" placeholder="https://www.youtube.com/watch?v=..." 
+                class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-white">
+            
+            <button onclick="descargarVideo()" id="btnDescarga"
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-transform active:scale-95 shadow-lg">
+                Generar Descarga
+            </button>
+        </div>
+
+        <div id="status" class="mt-6 hidden">
+            <div class="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-red-500 rounded-full mb-2"></div>
+            <p id="statusText" class="text-sm text-gray-300 italic">Procesando video...</p>
+        </div>
+
+        <div id="resultado" class="mt-6 hidden">
+            <a id="downloadLink" href="#" target="_blank"
+                class="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-medium transition-all">
+                ¡Listo! Haz clic para descargar
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function descargarVideo() {
+            const url = document.getElementById('videoUrl').value;
+            const btn = document.getElementById('btnDescarga');
+            const status = document.getElementById('status');
+            const resultado = document.getElementById('resultado');
+
+            if (!url) {
+                alert("Por favor, pega un enlace válido.");
+                return;
+            }
+
+            // Mostrar estado de carga
+            btn.disabled = true;
+            status.classList.remove('hidden');
+            resultado.classList.add('hidden');
+
+            try {
+                // Usamos la API de Cobalt (un proyecto open-source muy popular)
+                const response = await fetch('https://api.cobalt.tools/api/json', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        vQuality: "720"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    document.getElementById('downloadLink').href = data.url;
+                    resultado.classList.remove('hidden');
+                } else {
+                    alert("No se pudo obtener el video. Intenta con otro link.");
+                }
+            } catch (error) {
+                alert("Error de conexión con el servidor.");
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                status.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
